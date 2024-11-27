@@ -1,38 +1,47 @@
-// src/App.tsx
-import React, { useEffect, useState } from 'react';
-import VideoPlayer from './components/VideoPlayer';
+import { useRef } from 'react'
+import './App.css'
+import VideoPlayer from "./components/VideoPlayer.tsx";
+import videojs from 'video.js';
 
-const App: React.FC = () => {
-    const [videoIds, setVideoIds] = useState<string[]>([]); // Стейт для хранения списка videoId
-    const [currentVideoId, setCurrentVideoId] = useState<string | null>(null); // Стейт для хранения текущего videoId
 
-    useEffect(() => {
-        // Загрузка списка видеофрагментов
-        const ids = ['1', '2', '3']; // Замените на динамическую загрузку, если необходимо
-        setVideoIds(ids);
-        setCurrentVideoId(ids[0]); // По умолчанию начинаем с первого видео
-    }, []);
+function App() {
+    var videoSrc = 'http://localhost:3000/hls/output.m3u8';
 
-    const handleChangeVideo = (id: string) => {
-        setCurrentVideoId(id); // Меняем текущий videoId
+    const playerRef = useRef(null);
+
+    const videoJsOptions = {
+        autoplay: true,
+        controls: true,
+        responsive: true,
+        fluid: true,
+        sources: [{
+            src: videoSrc,
+            type: 'application/x-mpegURL'
+        }],
     };
 
+    const handlePlayerReady = (player) => {
+        playerRef.current = player;
+
+        // You can handle player events here, for example:
+        player.on('waiting', () => {
+            videojs.log('player is waiting');
+        });
+
+        player.on('dispose', () => {
+            videojs.log('player will dispose');
+        });
+    };
+
+
     return (
-        <div>
-            <h1>Seamless Video Player</h1>
-            {/* Список видео, позволяющий выбирать видео */}
-            <div>
-                {videoIds.map((id) => (
-                    <button key={id} onClick={() => handleChangeVideo(id)}>
-                        Video {id}
-                    </button>
-                ))}
+        <>
+            <div style={{display: 'flex', justifyContent: 'center', width: '100%', alignItems: 'center'}}>
+                <VideoPlayer options={videoJsOptions} onReady={handlePlayerReady} />
             </div>
+        </>
+    )
+}
 
-            {/* Компонент VideoPlayer, получающий текущий videoId */}
-            <VideoPlayer videoIds={[1, 2, 3]} />
-        </div>
-    );
-};
 
-export default App;
+export default App
